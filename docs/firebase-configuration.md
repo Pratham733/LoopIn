@@ -105,6 +105,3 @@ This endpoint will verify:
 - **"Failed to initialize Firebase Admin with credentials"**: Verify that your service account has the necessary permissions in Firebase.
 
 
-CLOUDINARY_CLOUD_NAME=ddhnere6z
-CLOUDINARY_API_KEY=236295514315953
-CLOUDINARY_API_SECRET=bNaMGT3KctgTLXXPna1ZwUMF1wY
