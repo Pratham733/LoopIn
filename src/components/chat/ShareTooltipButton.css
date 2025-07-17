@@ -1,0 +1,240 @@
+/* Container Styles */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  font-family: "Arial", sans-serif;
+  overflow: visible;
+}
+
+/* Button Styles */
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--share-btn-bg, linear-gradient(135deg, #6e8efb, #a777e3));
+  color: var(--share-btn-text, white);
+  padding: 7px 16px;
+  border-radius: 32px;
+  cursor: pointer;
+  transition:
+    background 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform 0.3s ease,
+    box-shadow 0.4s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.button-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--share-btn-bg-blur, linear-gradient(135deg, rgba(110, 142, 251, 0.2), rgba(167, 119, 227, 0.2)));
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+}
+
+.button-content::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: scale(0);
+  transition: transform 0.6s ease-out;
+  z-index: -1;
+}
+
+.button-content:hover::before {
+  opacity: 1;
+}
+
+.button-content:hover::after {
+  transform: scale(1);
+}
+
+.button-content:hover {
+  background: var(--share-btn-bg-hover, linear-gradient(135deg, #a777e3, #6e8efb));
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.13);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.button-content:active {
+  transform: translateY(-1px) scale(0.97);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+}
+
+.text {
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 7px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: letter-spacing 0.3s ease;
+}
+
+.button-content:hover .text {
+  letter-spacing: 0.5px;
+}
+
+.share-icon {
+  fill: currentColor;
+  width: 18px;
+  height: 18px;
+  transition:
+    transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    fill 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+}
+
+.button-content:hover .share-icon {
+  transform: rotate(180deg) scale(1.08);
+  fill: currentColor;
+}
+
+/* Tooltip Styles */
+.tooltip-content {
+  position: absolute;
+  top: 102%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  background: var(--share-tooltip-bg, rgba(255, 255, 255, 0.95));
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.13);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    visibility 0.5s ease;
+  z-index: 100;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .button-content {
+    --share-btn-bg: linear-gradient(135deg, #232b3b, #3a3f5a);
+    --share-btn-bg-hover: linear-gradient(135deg, #3a3f5a, #232b3b);
+    --share-btn-text: #e0e6f0;
+    --share-btn-bg-blur: linear-gradient(135deg, rgba(35, 43, 59, 0.2), rgba(58, 63, 90, 0.2));
+  }
+  .tooltip-content {
+    --share-tooltip-bg: rgba(30, 34, 44, 0.98);
+    color: #e0e6f0;
+  }
+}
+
+.tooltip-container:hover .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+  pointer-events: auto;
+}
+
+/* Social Icons Styles */
+.social-icons {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  transition:
+    transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    background 0.3s ease,
+    box-shadow 0.4s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.social-icon:hover::before {
+  opacity: 1;
+}
+
+.social-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: #333;
+  transition:
+    transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    fill 0.3s ease;
+  z-index: 1;
+}
+
+.social-icon:hover {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.13);
+}
+
+.social-icon:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+}
+
+.social-icon:hover svg {
+  transform: scale(1.12);
+  fill: white;
+}
+
+.social-icon.twitter:hover {
+  background: linear-gradient(135deg, #1da1f2, #1a91da);
+}
+
+.social-icon.facebook:hover {
+  background: linear-gradient(135deg, #1877f2, #165ed0);
+}
+
+.social-icon.linkedin:hover {
+  background: linear-gradient(135deg, #0077b5, #005e94);
+}
+
+.social-icon.whatsapp:hover {
+  background: linear-gradient(135deg, #25d366, #128c7e);
+}
+
+/* Tooltip Arrow */
+.tooltip-content::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-style: solid;
+  border-color: transparent transparent var(--share-tooltip-bg, rgba(255,255,255,0.95)) transparent;
+  filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.08));
+} 

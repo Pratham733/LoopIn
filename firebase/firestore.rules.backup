@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // For development with emulators - allow all operations
+    // WARNING: Change this to proper rules before deploying to production
+    allow read, write: if true;
+    
+    // User profiles are readable by anyone, but only writable by the owner
+    // (These rules are currently overridden by the allow all rule above)
+    match /users/{userId} {
+      allow read;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      
+      // User's private data is only readable and writable by the owner
+      match /private/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Conversations can be read by participants only
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.participantIds;
+      allow create: if request.auth != null && request.auth.uid in request.resource.data.participantIds;
+      allow update: if request.auth != null && request.auth.uid in resource.data.participantIds;
+      allow delete: if request.auth != null && request.auth.uid in resource.data.participantIds;
+    }
+    
+    // Messages can be read by conversation participants only
+    match /messages/{messageId} {
+      allow read: if request.auth != null && exists(/databases/$(database)/documents/conversations/$(resource.data.conversationId)) &&
+                   request.auth.uid in get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participantIds;
+      allow create: if request.auth != null && 
+                     request.auth.uid == request.resource.data.senderId &&
+                     exists(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)) &&
+                     request.auth.uid in get(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)).data.participantIds;
+      allow update: if request.auth != null && 
+                     (request.auth.uid == resource.data.senderId || 
+                      request.auth.uid in get(/databases/$(database)/documents/conversations/$(resource.data.conversationId)).data.participantIds);
+      allow delete: if request.auth != null && request.auth.uid == resource.data.senderId;
+    }
+    
+    // Posts can be read by anyone, but only created/updated/deleted by the owner
+    match /posts/{postId} {
+      allow read;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Follow requests are readable by sender and recipient, writable by sender
+    match /followRequests/{requestId} {
+      allow read: if request.auth != null && 
+                   (request.auth.uid == resource.data.fromUserId || 
+                    request.auth.uid == resource.data.toUserId);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUserId;
+      allow update, delete: if request.auth != null && 
+                            (request.auth.uid == resource.data.fromUserId || 
+                             request.auth.uid == resource.data.toUserId);
+    }
+    
+    // Notifications are only readable and writable by the recipient
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+  }
+}

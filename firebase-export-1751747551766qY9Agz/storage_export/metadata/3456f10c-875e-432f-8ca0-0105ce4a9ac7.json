@@ -1,0 +1,23 @@
+{
+  "name": "users/jwSzaq70fVE1n5JTkr8doCYD40Bc/profile/profile_1751431728795.jpg",
+  "bucket": "loopinchat.firebasestorage.app",
+  "metageneration": 1,
+  "generation": 1751431728898,
+  "contentType": "image/jpeg",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "6b01ae36-fbca-4243-9861-64eff81a78b8"
+  ],
+  "etag": "ICBGmXLvsgMrln2moyxZ55c7z0M",
+  "customMetadata": {
+    "userId": "jwSzaq70fVE1n5JTkr8doCYD40Bc",
+    "uploadDate": "2025-07-02T04:48:48.796Z",
+    "type": "profile"
+  },
+  "timeCreated": "2025-07-02T04:48:48.899Z",
+  "updated": "2025-07-02T04:48:48.899Z",
+  "size": 25213,
+  "md5Hash": "eFCXy78zVF5mvoUyGcgMQg==",
+  "crc32c": "3552049613"
+}

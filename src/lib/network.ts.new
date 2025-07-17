@@ -1,0 +1,293 @@
+// Network connectivity utility for Firebase
+import { onSnapshot, doc, enableNetwork, disableNetwork } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
+
+// Network status type definition
+interface NetworkStatusState {
+  isOnline: boolean;
+  lastChecked: number;
+  firebaseConnected: boolean;
+}
+
+// Create an observable network status
+class NetworkStatusObservable {
+  private listeners: Array<(status: NetworkStatusState) => void> = [];
+  private _state: NetworkStatusState = {
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+    lastChecked: Date.now(),
+    firebaseConnected: true
+  };
+  
+  // To prevent recursive connectivity checks
+  private _isCheckingConnectivity = false;
+
+  get isOnline() {
+    return this._state.isOnline;
+  }
+  
+  get firebaseConnected() {
+    return this._state.firebaseConnected;
+  }
+  
+  get lastChecked() {
+    return this._state.lastChecked;
+  }
+
+  updateStatus(status: Partial<NetworkStatusState>) {
+    this._state = {
+      ...this._state,
+      ...status,
+      lastChecked: Date.now()
+    };
+    this.notifyListeners();
+  }
+
+  // Update state without notifying listeners - used to prevent infinite loops
+  _updateStatusSilently(status: Partial<NetworkStatusState>) {
+    this._state = {
+      ...this._state,
+      ...status,
+      lastChecked: Date.now()
+    };
+    // No notification to prevent recursive calls
+  }
+
+  subscribe(listener: (status: NetworkStatusState) => void) {
+    this.listeners.push(listener);
+    // Immediately call the listener with current state
+    listener(this._state);
+    
+    // Return unsubscribe function
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  private notifyListeners() {
+    this.listeners.forEach(listener => listener(this._state));
+  }
+  
+  /**
+   * Checks Firebase connectivity safely
+   * @returns Promise resolving to true if connected to Firebase, false otherwise
+   */
+  async checkConnectivity(): Promise<boolean> {
+    // If already checking, return the current status to prevent recursion
+    if (this._isCheckingConnectivity) {
+      return this._state.firebaseConnected;
+    }
+    
+    // If running on server, we assume it's online
+    if (typeof window === 'undefined') {
+      return true;
+    }
+    
+    try {
+      this._isCheckingConnectivity = true;
+      
+      // First check browser's navigator.onLine
+      const isOnline = navigator.onLine;
+      this._updateStatusSilently({
+        isOnline: isOnline
+      });
+      
+      if (!isOnline) {
+        console.log('Browser reports offline status');
+        this._updateStatusSilently({
+          isOnline: false,
+          firebaseConnected: false
+        });
+        return false;
+      }
+
+      // Try a lightweight Firestore operation to verify connectivity
+      try {
+        // Use firebase instance we already have instead of getting a new one
+        return new Promise<boolean>((resolve) => {
+          const timeout = setTimeout(() => {
+            console.log('Firebase connectivity check timed out');
+            // Update status without triggering a new connectivity check
+            this._updateStatusSilently({ firebaseConnected: false });
+            resolve(false);
+          }, 5000); // 5 second timeout
+          
+          // Use the db instance we already have from client.ts
+          const unsubscribe = onSnapshot(
+            doc(db, '.info/connected'),
+            (snapshot: any) => {
+              clearTimeout(timeout);
+              unsubscribe();
+              const connected = snapshot.data()?.connected === true;
+              console.log('Firebase connectivity check:', connected ? 'ONLINE' : 'OFFLINE');
+              // Update status without triggering a new connectivity check
+              this._updateStatusSilently({ firebaseConnected: connected });
+              resolve(connected);
+            },
+            (error: any) => {
+              clearTimeout(timeout);
+              unsubscribe();
+              console.error('Firebase connectivity check error:', error);
+              // Update status without triggering a new connectivity check
+              this._updateStatusSilently({ firebaseConnected: false });
+              resolve(false);
+            }
+          );
+        });
+      } catch (error) {
+        console.error('Error checking Firebase connectivity:', error);
+        this._updateStatusSilently({ firebaseConnected: false });
+        return false;
+      }
+    } finally {
+      this._isCheckingConnectivity = false;
+    }
+  }
+}
+
+// Create a singleton instance
+const networkStatus = new NetworkStatusObservable();
+
+// Export the checkFirebaseConnectivity function for backward compatibility
+export const checkFirebaseConnectivity = (): Promise<boolean> => {
+  return networkStatus.checkConnectivity();
+};
+
+/**
+ * Function to execute a Firebase operation with retries on network issues
+ * @param operation The async operation to execute
+ * @param maxRetries Maximum number of retry attempts (default: 3)
+ * @param delayMs Base delay in milliseconds between retries (default: 1000)
+ * @param offlineErrorMsg Custom error message when offline after all retries
+ * @returns Promise resolving to the operation result
+ */
+export async function executeWithRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 1000,
+  offlineErrorMsg = 'Cannot complete operation: You appear to be offline'
+): Promise<T> {
+  let retries = 0;
+  
+  // Loop for retries
+  while (true) {
+    try {
+      // Check connectivity before the operation
+      if (typeof navigator !== 'undefined' && !navigator.onLine && retries === 0) {
+        console.log('Device is offline, will use cached data if available');
+      }
+      
+      return await operation();
+    } catch (error: any) {
+      // Check if it's a network-related error
+      const isNetworkError = 
+        error?.code === 'failed-precondition' ||
+        error?.code === 'unavailable' ||
+        error?.code === 'resource-exhausted' ||
+        error?.code === 'deadline-exceeded' ||
+        error?.message?.includes('offline') ||
+        error?.message?.includes('network') ||
+        error?.message?.includes('failed to get') ||
+        error?.name === 'AbortError' ||
+        (typeof navigator !== 'undefined' && !navigator.onLine);
+      
+      // If maximum retries reached or it's not a network error, throw
+      if (retries >= maxRetries || !isNetworkError) {
+        // If it was a network error that we couldn't recover from, throw a more user-friendly error
+        if (isNetworkError) {
+          console.error('Network error after maximum retries:', error);
+          throw new Error(offlineErrorMsg);
+        }
+        throw error;
+      }
+      
+      // Increment retry counter
+      retries++;
+      
+      // Log the retry
+      console.log(`Network error occurred. Retrying (${retries}/${maxRetries})...`, error);
+      
+      // Wait before retrying, with exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delayMs * Math.pow(2, retries - 1)));
+      
+      // Check connectivity before retrying, but don't create an infinite loop
+      const isConnected = await networkStatus.checkConnectivity();
+      if (!isConnected && retries === maxRetries) {
+        console.error('Failed to connect after maximum retries');
+        throw new Error(offlineErrorMsg);
+      }
+    }
+  }
+}
+
+// Set up listeners for online/offline events
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    console.log('Browser went online');
+    networkStatus.updateStatus({ isOnline: true });
+  });
+  
+  window.addEventListener('offline', () => {
+    console.log('Browser went offline');
+    networkStatus.updateStatus({ isOnline: false });
+  });
+}
+
+export { networkStatus };
+
+/**
+ * Toggle Firebase network connection
+ * @param enable Whether to enable (true) or disable (false) the network
+ * @returns Promise resolving when the network state has been changed
+ */
+export async function toggleFirebaseNetwork(enable: boolean): Promise<void> {
+  if (typeof window === 'undefined') return; // No-op on server
+  
+  try {
+    if (enable) {
+      console.log('Enabling Firebase network connection');
+      await enableNetwork(db);
+      networkStatus._updateStatusSilently({ firebaseConnected: true });
+    } else {
+      console.log('Disabling Firebase network connection');
+      await disableNetwork(db);
+      networkStatus._updateStatusSilently({ firebaseConnected: false });
+    }
+  } catch (error) {
+    console.error(`Error ${enable ? 'enabling' : 'disabling'} Firebase network:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Waits for online status before executing a task
+ * @param task The task to execute when online
+ * @param timeoutMs Timeout in milliseconds
+ */
+export function executeWhenOnline<T>(
+  task: () => Promise<T>, 
+  timeoutMs = 30000
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    // If already online, execute immediately
+    if (navigator.onLine) {
+      task().then(resolve).catch(reject);
+      return;
+    }
+    
+    // Set timeout
+    const timeout = setTimeout(() => {
+      window.removeEventListener('online', onlineHandler);
+      reject(new Error('Timeout waiting for network connection'));
+    }, timeoutMs);
+    
+    // Handler for when we go online
+    const onlineHandler = () => {
+      clearTimeout(timeout);
+      window.removeEventListener('online', onlineHandler);
+      task().then(resolve).catch(reject);
+    };
+    
+    // Wait for online event
+    window.addEventListener('online', onlineHandler);
+  });
+}

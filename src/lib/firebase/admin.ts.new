@@ -1,0 +1,87 @@
+// This file is for server-side only
+
+// We dynamically import firebase-admin to avoid issues with webpack
+// This code only runs on the server, never in the browser
+let admin: any = null;
+let adminApp: any = null;
+let adminDb: any = null;
+let adminAuth: any = null;
+let adminStorage: any = null;
+
+// We can safely use these imports on the server
+if (typeof window === 'undefined') {
+  // Dynamically import firebase-admin
+  import('firebase-admin').then((firebaseAdmin) => {
+    admin = firebaseAdmin;
+    
+    // Check if an app has already been initialized
+    if (!admin.apps.length) {
+      try {
+        // Parse the service account if it exists
+        let serviceAccount;
+        try {
+          if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            console.log('Found FIREBASE_SERVICE_ACCOUNT env variable');
+          } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            console.log('Using GOOGLE_APPLICATION_CREDENTIALS from env');
+          } else {
+            console.warn('No Firebase service account or credentials found in environment variables');
+          }
+        } catch (e) {
+          console.error('Error parsing FIREBASE_SERVICE_ACCOUNT:', e);
+        }
+        
+        // Initialize Firebase Admin with more robust error handling
+        let credentials;
+        try {
+          if (serviceAccount) {
+            credentials = admin.credential.cert(serviceAccount);
+          } else {
+            // Try to use default credentials (from GOOGLE_APPLICATION_CREDENTIALS)
+            try {
+              credentials = admin.credential.applicationDefault();
+            } catch (credError) {
+              console.error('Failed to load application default credentials:', credError);
+              
+              // For development environment, try to use a local emulator if available
+              if (process.env.NODE_ENV !== 'production') {
+                console.log('Attempting to use Firebase emulator for development');
+                credentials = admin.credential.applicationDefault();
+              } else {
+                throw credError;
+              }
+            }
+          }
+          
+          adminApp = admin.initializeApp({
+            credential: credentials,
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+          });
+          
+          console.log('Firebase Admin initialized successfully');
+        } catch (initError) {
+          console.error('Failed to initialize Firebase Admin with credentials:', initError);
+        }
+      } catch (error) {
+        console.error('Firebase Admin initialization error:', error);
+        // Continue without admin functionality
+      }
+    } else {
+      // Get the existing app
+      adminApp = admin.app();
+    }
+    
+    // Initialize admin services if app is available
+    if (adminApp) {
+      adminDb = adminApp.firestore();
+      adminAuth = adminApp.auth();
+      adminStorage = adminApp.storage();
+    }
+  }).catch(error => {
+    console.error('Error importing firebase-admin:', error);
+  });
+}
+
+export { admin, adminApp, adminDb, adminAuth, adminStorage };

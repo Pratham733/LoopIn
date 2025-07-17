@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://loopin-five.vercel.app", "https://loopinchat.vercel.app", "http://localhost:3000", "http://localhost:9002"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers"]
+  }
+] 

@@ -1,0 +1,200 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .dark {
+    --background: 224 71.4% 4.1%; /* Dark background */
+    --foreground: 210 20% 98%; /* Light text for dark background */
+    --meteor-color: 0 0% 100%; /* White for dark mode meteors */
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 242 79% 62%; /* Deep Indigo #4F46E5 */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%; /* Darker secondary */
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 20.9%; /* Muted dark */
+    --muted-foreground: 215 20.9% 65.1%;
+    --accent: 254 88% 76%; /* Soft Lavender #A78BFA */
+    --accent-foreground: 242 79% 22%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 242 79% 62%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    /* Sidebar specific variables for dark mode */
+    --sidebar-background: 224 71.4% 4.1%; 
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-accent: 215 27.9% 16.9%; 
+    --sidebar-accent-foreground: 210 20% 98%; 
+    --sidebar-border: 215 27.9% 16.9%;
+    --sidebar-ring: 242 79% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-body bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Styles for the hover-expand sidebar */
+@layer components {
+  .link-icon-style { 
+    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+           group-hover/main-sidebar:left-3 group-hover/main-sidebar:-translate-x-0 
+           group-focus-visible/main-sidebar:left-3 group-focus-visible/main-sidebar:-translate-x-0
+           flex-shrink-0 w-6 h-6 flex items-center justify-center 
+           transition-all duration-200 ease-in-out; 
+  }
+  .link-title-style { 
+    @apply block w-full text-left 
+           pl-[44px] 
+           opacity-0 transform -translate-x-4 
+           group-hover/main-sidebar:opacity-100 group-hover/main-sidebar:translate-x-0 
+           group-focus-visible/main-sidebar:opacity-100 group-focus-visible/main-sidebar:translate-x-0
+           transition-all duration-200 ease-in-out whitespace-nowrap;
+  }
+  .link-badge-style { 
+    @apply absolute right-3 top-1/2 -translate-y-1/2 
+           opacity-100 
+           group-hover/main-sidebar:opacity-0 
+           group-focus-visible/main-sidebar:opacity-0
+           transition-opacity duration-200 ease-in-out;
+  }
+
+  .sidebar-logo-icon-style {
+     @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+            group-hover/main-sidebar:left-3 group-hover/main-sidebar:-translate-x-0 
+            group-focus-visible/main-sidebar:left-3 group-focus-visible/main-sidebar:-translate-x-0
+            transition-all duration-200 ease-in-out;
+  }
+  .sidebar-logo-title-style {
+     @apply block w-full text-left
+            pl-[48px] 
+            opacity-0 transform -translate-x-4
+            group-hover/main-sidebar:opacity-100 group-hover/main-sidebar:translate-x-0
+            group-focus-visible/main-sidebar:opacity-100 group-focus-visible/main-sidebar:translate-x-0
+            transition-all duration-200 ease-in-out whitespace-nowrap;
+  }
+
+  .meteor-streak {
+    background: linear-gradient(to left, hsl(var(--meteor-color)), transparent);
+  }
+}
+
+/* Custom CSS for 3D Hover Card Effect */
+.cards-container-3d {
+  perspective: 500px;
+}
+
+.card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card-3d:hover {
+  transform: translateZ(20px) rotateX(10deg) rotateY(10deg) scale(1.05);
+}
+
+.card-title-3d {
+  color: #fff;
+  position: absolute;
+  top: 50%;
+  right: 12px; 
+  transform: translateY(-50%);
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font: 700 0.875rem monospace; /* text-sm */
+  text-shadow: -1px -1px 0 rgba(0,0,0,0.6),  
+    1px -1px 0 rgba(0,0,0,0.6),
+    -1px 1px 0 rgba(0,0,0,0.6),
+     1px 1px 0 rgba(0,0,0,0.6);
+  z-index: 10; 
+  padding: 6px 8px; 
+  background-color: rgba(0,0,0,0.6); 
+  backdrop-filter: blur(4px); 
+  border-radius: 0.375rem; 
+}
+
+.card-3d:hover .card-title-3d {
+  transform: translateZ(50px) translateY(-50%);
+}
+
+/* Animation for Avatar change in Edit Profile */
+@keyframes avatar-change-pop {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.avatar-animate-change {
+  animation: avatar-change-pop 0.3s ease-out;
+}
+
+@keyframes card-fly-in {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) rotateX(-10deg) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotateX(0) scale(1);
+    }
+}
+.animate-card-fly-in {
+    animation: card-fly-in 0.6s ease-out forwards;
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-down {
+  animation: fade-in-down 0.5s ease-out forwards;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}

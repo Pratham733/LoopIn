@@ -1,0 +1,51 @@
+.interactive-button {
+  --bg: hsl(var(--secondary));
+  --text: hsl(var(--secondary-foreground));
+  --hover-bg: hsl(var(--primary));
+  --hover-text: hsl(var(--primary-foreground));
+
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow: hidden;
+  transition: color 0.4s ease;
+  z-index: 1;
+}
+
+.interactive-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--hover-bg);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: -1;
+}
+
+.interactive-button:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.interactive-button .interactive-button-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Equivalent to gap-2 */
+}
+
+.interactive-button:hover {
+  color: var(--hover-text);
+}

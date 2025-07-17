@@ -1,0 +1,19 @@
+{
+  "name": "posts/7zkRV7fxpKU2nrRHAPpxat4H1te2/1751399686977-image",
+  "bucket": "loopinchat.firebasestorage.app",
+  "metageneration": 1,
+  "generation": 1751399687234,
+  "contentType": "image/png",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "261c44cb-d7aa-414f-a1dc-fdc17dfc456e"
+  ],
+  "etag": "j0bIzYcFHM1PA0mVH0A6RIEEH0c",
+  "customMetadata": {},
+  "timeCreated": "2025-07-01T19:54:47.238Z",
+  "updated": "2025-07-01T19:54:47.238Z",
+  "size": 44236,
+  "md5Hash": "025A37zd6w2ZgfSB0dqwTw==",
+  "crc32c": "1127223661"
+}

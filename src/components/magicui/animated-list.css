@@ -1,0 +1,72 @@
+.scroll-list-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-list {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px; /* Space for scrollbar */
+}
+
+.scroll-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-list::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.item {
+  /* Let child control styling */
+  background-color: transparent;
+  padding: 0;
+  margin-bottom: 0.5rem; /* A bit of space between items */
+  border-radius: 0.5rem; /* Match conversation item radius */
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+}
+
+.item.selected > * { /* Target direct child */
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--accent));
+}
+
+.top-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(to bottom, hsl(var(--background)), transparent);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.bottom-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(to top, hsl(var(--background)), transparent);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
